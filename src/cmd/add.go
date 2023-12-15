@@ -11,6 +11,9 @@ import (
 	"net/http"
 	"log"
 	"io/ioutil"
+
+	"database/sql"
+	_ "github.com/lib/pq"
 )
 
 // フラグバインド用の変数
@@ -47,7 +50,27 @@ to quickly create a Cobra application.`,
 		fmt.Println(string(body));
 
 		// DB保存
+		db()
 	},
+}
+
+func db() {
+	// DB接続
+	db, err := sql.Open("postgres", "host=db user=postgres dbname=go_app password=mypassword sslmode=disable")
+    defer db.Close()
+
+    if err != nil {
+        fmt.Println(err)
+    }
+
+	fmt.Println("db接続成功")
+
+	_, err = db.Exec("INSERT INTO breads(id, name, created_at) VALUES($1, $2, $3);", 1, "test_name", "2023-12-11T06:28:32.196Z")
+	if err != nil {
+        fmt.Println(err)
+    }
+
+	fmt.Println("insert成功")
 }
 
 func init() {
