@@ -12,8 +12,10 @@ import (
 	"log"
 	"io/ioutil"
 
-	"database/sql"
-	_ "github.com/lib/pq"
+	// "database/sql"
+	// _ "github.com/lib/pq"
+
+	// "encoding/json"
 )
 
 // フラグバインド用の変数
@@ -48,30 +50,34 @@ to quickly create a Cobra application.`,
 			log.Fatal(err)
 		}
 		fmt.Println(string(body));
+		// var stcData struct{}
+		// json.Unmarshal([]byte(body), &stcData);
+		// fmt.Println(stcData);
 
 		// DB保存
-		db()
+		// db()
 	},
 }
 
-func db() {
-	// DB接続
-	db, err := sql.Open("postgres", "host=db user=postgres dbname=go_app password=mypassword sslmode=disable")
-    defer db.Close()
+// func db(id string, name string, created_at string) {
+// 	// DB接続
+// 	// ローカルで動作確認するだけなので全てベタ書き
+// 	db, err := sql.Open("postgres", "host=db user=postgres dbname=go_app password=mypassword sslmode=disable")
+//     defer db.Close()
 
-    if err != nil {
-        fmt.Println(err)
-    }
+//     if err != nil {
+//         fmt.Println(err)
+//     }
 
-	fmt.Println("db接続成功")
+// 	fmt.Println("db接続成功")
 
-	_, err = db.Exec("INSERT INTO breads(id, name, created_at) VALUES($1, $2, $3);", 1, "test_name", "2023-12-11T06:28:32.196Z")
-	if err != nil {
-        fmt.Println(err)
-    }
-
-	fmt.Println("insert成功")
-}
+// 	_, err = db.Exec("INSERT INTO breads(id, name, created_at) VALUES($1, $2, $3);", id, name, created_at)
+// 	if err != nil {
+//         fmt.Println(err)
+//     } else {
+// 		fmt.Println("insert成功")
+// 	}
+// }
 
 func init() {
 	rootCmd.AddCommand(addCmd)
