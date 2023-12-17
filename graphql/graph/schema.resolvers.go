@@ -6,18 +6,100 @@ package graph
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
 	"graphql/graph/model"
+	"math/big"
+	"database/sql"
+	_ "github.com/lib/pq"
 )
 
 // CreateTodo is the resolver for the createTodo field.
 func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
-	panic(fmt.Errorf("not implemented: CreateTodo - createTodo"))
+	// panic(fmt.Errorf("not implemented: CreateTodo - createTodo"))
+
+	randNumber, _ := rand.Int(rand.Reader, big.NewInt(100))
+	todo := &model.Todo{
+		Text: input.Text,
+		ID:   fmt.Sprintf("T%d", randNumber),
+	}
+	r.todos = append(r.todos, todo)
+	return todo, nil
 }
 
 // Todos is the resolver for the todos field.
 func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
-	panic(fmt.Errorf("not implemented: Todos - todos"))
+	// panic(fmt.Errorf("not implemented: Todos - todos"))
+	// return r.todos, nil
+
+	// todo1 := []*model.Todo{
+	// 	{
+	// 		Text: "todo 1",
+	// 		ID:   "1",
+	// 		Done: false,
+	// 	},
+	// }
+	// return todo1, nil
+
+	breads, err := db()
+	if err != nil {
+        fmt.Println(err)
+    }
+
+	for breads.Next() {
+		var id string
+		var name string
+		var created_at string
+		err := breads.Scan(&id, &name, &created_at)
+		if err != nil {
+			fmt.Println(err)
+		}
+		// fmt.Println(id, name, created_at)
+		todo := &model.Todo{
+			Text: name,
+			ID:   id,
+		}
+		r.todos = append(r.todos, todo)
+	}
+	
+	return r.todos, nil
+}
+
+// Todo is the resolver for the todo field.
+func (r *queryResolver) Todo(ctx context.Context, id model.ID) (*model.Todo, error) {
+	// panic(fmt.Errorf("not implemented: Todo - todo"))
+	
+	if id.ID == "2" {
+		todo2 := &model.Todo{
+			Text: "todo 2",
+			ID:   "2",
+			Done: false,
+		}
+		return todo2, nil
+	}
+	return nil, nil
+}
+
+// func db(id string, name string, created_at string) (*model.Todo, error) {
+func db() (*sql.Rows, error) {
+	// DB接続
+	// ローカルで動作確認するだけなので全てベタ書き
+	db, err := sql.Open("postgres", "host=db user=postgres dbname=go_app password=mypassword sslmode=disable")
+    defer db.Close()
+
+    if err != nil {
+        fmt.Println(err)
+    }
+
+	fmt.Println("db接続成功")
+
+	var rows *sql.Rows
+	rows, err = db.Query("SELECT * FROM breads;")
+	if err != nil {
+        fmt.Println(err)
+    }
+
+	return rows, nil
 }
 
 // Mutation returns MutationResolver implementation.

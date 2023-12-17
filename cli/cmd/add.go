@@ -12,14 +12,11 @@ import (
 	"log"
 	"io/ioutil"
 
-	// "database/sql"
-	// _ "github.com/lib/pq"
+	"database/sql"
+	_ "github.com/lib/pq"
 
-	// "encoding/json"
+	"encoding/json"
 )
-
-// フラグバインド用の変数
-var date, name string
 
 // addCmd represents the add command
 var addCmd = &cobra.Command{
@@ -49,46 +46,80 @@ to quickly create a Cobra application.`,
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println(string(body));
+		// fmt.Println(string(body));
+
+		type breadData struct{
+			Sys struct {
+				Id string `json:"id"`
+				CreatedAt string `json:"createdAt"`
+			} `json:"sys"`
+			Fields struct {
+				Name string `json:"name"`
+			} `json:"fields"`
+		}
+
+		bread := new(breadData)
+
+		// bodyをjsonデコードして、breadに格納
+		json.Unmarshal([]byte(body), bread);
+		// fmt.Println(bread)
+
+		// fmt.Println(bread.Sys.Id)
+		// fmt.Println(bread.Sys.CreatedAt)
+		// fmt.Println(bread.Fields.Name)
+
+
 		// var stcData struct{}
 		// json.Unmarshal([]byte(body), &stcData);
 		// fmt.Println(stcData);
 
 		// DB保存
-		// db()
+		db(bread.Sys.Id, bread.Fields.Name, bread.Sys.CreatedAt)
+
+		// result, err := db(bread.Sys.Id, bread.Fields.Name, bread.Sys.CreatedAt)
+		// for result.Next() {
+		// 	var id string
+		// 	var name string
+		// 	var created_at string
+		// 	err := result.Scan(&id, &name, &created_at)
+		// 	if err != nil {
+		// 		fmt.Println(err)
+		// 	}
+		// 	fmt.Println(id, name, created_at)
+		// }
 	},
 }
 
-// func db(id string, name string, created_at string) {
-// 	// DB接続
-// 	// ローカルで動作確認するだけなので全てベタ書き
-// 	db, err := sql.Open("postgres", "host=db user=postgres dbname=go_app password=mypassword sslmode=disable")
-//     defer db.Close()
+// func db(id string, name string, created_at string) (*sql.Rows, error) {
+func db(id string, name string, created_at string) {
+	// DB接続
+	// ローカルで動作確認するだけなので全てベタ書き
+	db, err := sql.Open("postgres", "host=db user=postgres dbname=go_app password=mypassword sslmode=disable")
+    defer db.Close()
 
-//     if err != nil {
-//         fmt.Println(err)
-//     }
+    if err != nil {
+        fmt.Println(err)
+    }
 
-// 	fmt.Println("db接続成功")
+	fmt.Println("db接続成功")
 
-// 	_, err = db.Exec("INSERT INTO breads(id, name, created_at) VALUES($1, $2, $3);", id, name, created_at)
-// 	if err != nil {
-//         fmt.Println(err)
-//     } else {
-// 		fmt.Println("insert成功")
-// 	}
-// }
+	_, err = db.Exec("INSERT INTO breads(id, name, created_at) VALUES($1, $2, $3);", id, name, created_at)
+	if err != nil {
+        fmt.Println(err)
+    } else {
+		fmt.Println("insert成功")
+	}
+
+	// var rows *sql.Rows
+	// rows, err = db.Query("SELECT * FROM breads;")
+	// if err != nil {
+    //     fmt.Println(err)
+    // }
+	// return rows, nil
+}
 
 func init() {
 	rootCmd.AddCommand(addCmd)
-
-	// //フラグの値を変数にバインド
-	// addCmd.Flags().StringVarP(&date, "date", "D", "", "Anniversary date in the format 'YYYYMMDD'")
-	// addCmd.Flags().StringVar(&name, "name", "", "Anniversary date name")
-
-	// //必須のフラグに指定
-	// addCmd.MarkFlagRequired("date")
-	// addCmd.MarkFlagRequired("name")
 
 	// Here you will define your flags and configuration settings.
 
