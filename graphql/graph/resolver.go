@@ -9,6 +9,8 @@ package graph
 import "graphql/graph/model"
 
 type Resolver struct{
-	todos []*model.Todo
-	todo *model.Todo
+	// todos []*model.Todo
+	// todo *model.Todo
+
+	breads []*model.Bread
 }

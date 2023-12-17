@@ -2,16 +2,8 @@
 
 package model
 
-type ID struct {
-	ID string `json:"id"`
-}
-
-type NewTodo struct {
-	Text string `json:"text"`
-}
-
-type Todo struct {
-	ID   string `json:"id"`
-	Text string `json:"text"`
-	Done bool   `json:"done"`
+type Bread struct {
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	CreatedAt string `json:"created_at"`
 }

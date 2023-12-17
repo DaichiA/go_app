@@ -6,107 +6,66 @@ package graph
 
 import (
 	"context"
-	"crypto/rand"
+	"database/sql"
 	"fmt"
 	"graphql/graph/model"
-	"math/big"
-	"database/sql"
+
 	_ "github.com/lib/pq"
 )
 
-// CreateTodo is the resolver for the createTodo field.
-func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
-	// panic(fmt.Errorf("not implemented: CreateTodo - createTodo"))
-
-	randNumber, _ := rand.Int(rand.Reader, big.NewInt(100))
-	todo := &model.Todo{
-		Text: input.Text,
-		ID:   fmt.Sprintf("T%d", randNumber),
-	}
-	r.todos = append(r.todos, todo)
-	return todo, nil
-}
-
-// Todos is the resolver for the todos field.
-func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
-	// panic(fmt.Errorf("not implemented: Todos - todos"))
-	// return r.todos, nil
-
-	// todo1 := []*model.Todo{
-	// 	{
-	// 		Text: "todo 1",
-	// 		ID:   "1",
-	// 		Done: false,
-	// 	},
-	// }
-	// return todo1, nil
-
-	breads, err := db()
+// Breads is the resolver for the todos field.
+func (r *queryResolver) Breads(ctx context.Context) ([]*model.Bread, error) {
+	results, err := fetch_all()
 	if err != nil {
-        fmt.Println(err)
-    }
+		fmt.Println(err)
+	}
 
-	for breads.Next() {
+	for results.Next() {
 		var id string
 		var name string
 		var created_at string
-		err := breads.Scan(&id, &name, &created_at)
+		err := results.Scan(&id, &name, &created_at)
 		if err != nil {
 			fmt.Println(err)
 		}
-		// fmt.Println(id, name, created_at)
-		todo := &model.Todo{
-			Text: name,
-			ID:   id,
+		
+		bread := &model.Bread{
+			ID:        id,
+			Name:      name,
+			CreatedAt: created_at,
 		}
-		r.todos = append(r.todos, todo)
+		r.breads = append(r.breads, bread)
 	}
-	
-	return r.todos, nil
+
+	return r.breads, nil
 }
-
-// Todo is the resolver for the todo field.
-func (r *queryResolver) Todo(ctx context.Context, id model.ID) (*model.Todo, error) {
-	// panic(fmt.Errorf("not implemented: Todo - todo"))
-	
-	if id.ID == "2" {
-		todo2 := &model.Todo{
-			Text: "todo 2",
-			ID:   "2",
-			Done: false,
-		}
-		return todo2, nil
-	}
-	return nil, nil
-}
-
-// func db(id string, name string, created_at string) (*model.Todo, error) {
-func db() (*sql.Rows, error) {
-	// DB接続
-	// ローカルで動作確認するだけなので全てベタ書き
-	db, err := sql.Open("postgres", "host=db user=postgres dbname=go_app password=mypassword sslmode=disable")
-    defer db.Close()
-
-    if err != nil {
-        fmt.Println(err)
-    }
-
-	fmt.Println("db接続成功")
-
-	var rows *sql.Rows
-	rows, err = db.Query("SELECT * FROM breads;")
-	if err != nil {
-        fmt.Println(err)
-    }
-
-	return rows, nil
-}
-
-// Mutation returns MutationResolver implementation.
-func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
-type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
+func fetch_all() (*sql.Rows, error) {
+	// DB接続
+	// ローカルで動作確認するだけなので全てベタ書き
+	db, err := sql.Open("postgres", "host=db user=postgres dbname=go_app password=mypassword sslmode=disable")
+	defer db.Close()
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	var rows *sql.Rows
+	rows, err = db.Query("SELECT * FROM breads;")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	return rows, nil
+}

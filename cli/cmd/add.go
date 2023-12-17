@@ -30,8 +30,6 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		// fmt.Println("add called")
-
 		entry_id     := args[0]
 		access_token := args[1]
 		url          := "https://cdn.contentful.com/spaces/2vskphwbz4oc/entries/" + entry_id + "?access_token=" + access_token
@@ -40,13 +38,11 @@ to quickly create a Cobra application.`,
 			log.Fatal(err)
 		}
 
-		// deferは関数の終了時に実行される
 		defer res.Body.Close()
 		body, err := ioutil.ReadAll(res.Body)
 		if err != nil {
 			log.Fatal(err)
 		}
-		// fmt.Println(string(body));
 
 		type breadData struct{
 			Sys struct {
@@ -58,40 +54,17 @@ to quickly create a Cobra application.`,
 			} `json:"fields"`
 		}
 
-		bread := new(breadData)
-
 		// bodyをjsonデコードして、breadに格納
+		bread := new(breadData)
 		json.Unmarshal([]byte(body), bread);
-		// fmt.Println(bread)
-
-		// fmt.Println(bread.Sys.Id)
-		// fmt.Println(bread.Sys.CreatedAt)
-		// fmt.Println(bread.Fields.Name)
-
-
-		// var stcData struct{}
-		// json.Unmarshal([]byte(body), &stcData);
-		// fmt.Println(stcData);
 
 		// DB保存
-		db(bread.Sys.Id, bread.Fields.Name, bread.Sys.CreatedAt)
-
-		// result, err := db(bread.Sys.Id, bread.Fields.Name, bread.Sys.CreatedAt)
-		// for result.Next() {
-		// 	var id string
-		// 	var name string
-		// 	var created_at string
-		// 	err := result.Scan(&id, &name, &created_at)
-		// 	if err != nil {
-		// 		fmt.Println(err)
-		// 	}
-		// 	fmt.Println(id, name, created_at)
-		// }
+		save(bread.Sys.Id, bread.Fields.Name, bread.Sys.CreatedAt)
 	},
 }
 
 // func db(id string, name string, created_at string) (*sql.Rows, error) {
-func db(id string, name string, created_at string) {
+func save(id string, name string, created_at string) {
 	// DB接続
 	// ローカルで動作確認するだけなので全てベタ書き
 	db, err := sql.Open("postgres", "host=db user=postgres dbname=go_app password=mypassword sslmode=disable")
@@ -101,21 +74,14 @@ func db(id string, name string, created_at string) {
         fmt.Println(err)
     }
 
-	fmt.Println("db接続成功")
+	// fmt.Println("db接続成功")
 
 	_, err = db.Exec("INSERT INTO breads(id, name, created_at) VALUES($1, $2, $3);", id, name, created_at)
 	if err != nil {
         fmt.Println(err)
     } else {
-		fmt.Println("insert成功")
+		fmt.Println("id: " + id + ", name: " + name + ", created_at: " + created_at + " をDBに保存しました")
 	}
-
-	// var rows *sql.Rows
-	// rows, err = db.Query("SELECT * FROM breads;")
-	// if err != nil {
-    //     fmt.Println(err)
-    // }
-	// return rows, nil
 }
 
 func init() {
